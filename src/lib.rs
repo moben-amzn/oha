@@ -1,7 +1,7 @@
 use anyhow::Context;
 use aws_auth::AwsSignatureConfig;
 use bytes::Bytes;
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use crossterm::tty::IsTty;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use humantime::Duration;
@@ -53,6 +53,12 @@ use crate::{
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
+
+#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+enum TlsVersion {
+    Tls12,
+    Tls13
+}
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -249,6 +255,11 @@ Note: If qps is specified, burst will be ignored",
     ipv6: bool,
     #[arg(help = "Lookup only ipv4.", long = "ipv4")]
     ipv4: bool,
+    #[arg(
+        help = "(TLS) Use the specified TLS version",
+        long = "tls-version"
+    )]
+    tls_version: Option<TlsVersion>,
     #[arg(
         help = "(TLS) Use the specified certificate file to verify the peer. Native certificate store is used even if this argument is specified.",
         long
@@ -604,6 +615,7 @@ pub async fn run(mut opts: Opts) -> anyhow::Result<()> {
             client_auth
                 .as_ref()
                 .map(|(cert, key)| (cert.as_slice(), key.as_slice())),
+            opts.tls_version,
         ),
         #[cfg(all(feature = "native-tls", not(feature = "rustls")))]
         native_tls_connectors: tls_config::NativeTlsConnectors::new(
