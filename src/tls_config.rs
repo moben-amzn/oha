@@ -36,6 +36,9 @@ impl RuslsConfigs {
             None => rustls::DEFAULT_VERSIONS,
         };
 
+        let _ = rustls::crypto::CryptoProvider::install_default(
+            rustls::crypto::aws_lc_rs::default_provider(),
+        );
         let provider = rustls::crypto::aws_lc_rs::default_provider();
         let builder = rustls::ClientConfig::builder_with_provider(Arc::new(provider))
             .with_protocol_versions(tls_version)
