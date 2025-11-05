@@ -271,7 +271,7 @@ impl Default for Client {
             #[cfg(feature = "vsock")]
             vsock_addr: None,
             #[cfg(feature = "rustls")]
-            rustls_configs: crate::tls_config::RuslsConfigs::new(false, None, None),
+            rustls_configs: crate::tls_config::RuslsConfigs::new(false, None, None, None),
             #[cfg(all(feature = "native-tls", not(feature = "rustls")))]
             native_tls_connectors: crate::tls_config::NativeTlsConnectors::new(false, None, None),
         }
