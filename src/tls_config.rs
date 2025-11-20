@@ -1,3 +1,5 @@
+use crate::TlsVersion;
+
 #[cfg(feature = "rustls")]
 pub struct RuslsConfigs {
     no_alpn: std::sync::Arc<rustls::ClientConfig>,
@@ -11,6 +13,7 @@ impl RuslsConfigs {
         insecure: bool,
         cacert_pem: Option<&[u8]>,
         client_auth: Option<(&[u8], &[u8])>,
+        tls_version: Option<TlsVersion>
     ) -> Self {
         use rustls_pki_types::pem::PemObject;
         use std::sync::Arc;
@@ -27,10 +30,20 @@ impl RuslsConfigs {
             }
         }
 
+        let tls_version = match tls_version {
+            Some(TlsVersion::Tls12) => &[&rustls::version::TLS12],
+            Some(TlsVersion::Tls13) => &[&rustls::version::TLS13],
+            None => rustls::DEFAULT_VERSIONS,
+        };
+
         let _ = rustls::crypto::CryptoProvider::install_default(
             rustls::crypto::aws_lc_rs::default_provider(),
         );
-        let builder = rustls::ClientConfig::builder().with_root_certificates(root_cert_store);
+        let provider = rustls::crypto::aws_lc_rs::default_provider();
+        let builder = rustls::ClientConfig::builder_with_provider(Arc::new(provider))
+            .with_protocol_versions(tls_version)
+            .unwrap()
+            .with_root_certificates(root_cert_store);
 
         let mut config = if let Some((cert, key)) = client_auth {
             let certs = rustls_pki_types::CertificateDer::pem_slice_iter(cert)

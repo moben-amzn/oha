@@ -192,6 +192,8 @@ Options:
           Lookup only ipv6.
       --ipv4
           Lookup only ipv4.
+      --tls-version
+          (TLS) Use the specified TLS version (tls12, tls13).
       --cacert <CACERT>
           (TLS) Use the specified certificate file to verify the peer. Native certificate store is used even if this argument is specified.
       --cert <CERT>
